@@ -1,0 +1,16 @@
+uvicorn
+openai
+autogen==0.9.10
+typing
+langchain
+autogen_ext
+pydantic
+requests
+sqlalchemy
+fastapi
+uvicorn
+pymysql
+cryptography
+bs4
+pyyaml
+lingua-language-detector
