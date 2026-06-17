@@ -1,0 +1,19 @@
+import yaml
+import json
+
+def load_prompts():
+    try:
+        with open("prompts.yaml", 'r') as f:
+            return yaml.safe_load(f)
+        
+    except Exception as e:
+        print(f"Error reading or finding prompts.yaml {e}")
+        exit(1)
+
+def load_safeguards():
+    try:
+        with open("safeguards.json", "r") as f:
+           return json.load(f)
+    except Exception as e:
+        print(f"Error reading or finding safeguards.json {e}")
+        exit(1)
