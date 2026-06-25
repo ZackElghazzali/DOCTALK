@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PROPAGATOR Demo Scripts</title>
+  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&f[]=zodiak@500,700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root, [data-theme="light"] {
+      --color-bg:#f7f6f2; --color-surface:#f9f8f5; --color-surface-2:#fbfbf9; --color-surface-offset:#f3f0ec;
+      --color-border:#d4d1ca; --color-text:#28251d; --color-text-muted:#6c6a65; --color-text-faint:#a5a29b;
+      --color-primary:#01696f; --color-primary-hover:#0c4e54; --color-success:#437a22; --color-error:#a12c7b;
+      --radius-sm:.375rem; --radius-md:.5rem; --radius-lg:.75rem; --radius-xl:1rem;
+      --space-2:.5rem; --space-3:.75rem; --space-4:1rem; --space-6:1.5rem; --space-8:2rem; --space-12:3rem;
+      --text-xs:.75rem; --text-sm:.92rem; --text-base:1rem; --text-lg:1.2rem; --text-xl:1.7rem; --text-2xl:2.6rem;
+      --shadow-sm:0 1px 2px rgba(0,0,0,.06); --shadow-md:0 8px 24px rgba(0,0,0,.08);
+      --font-body:'Satoshi', sans-serif; --font-display:'Zodiak', serif;
+    }
+    [data-theme="dark"] {
+      --color-bg:#171614; --color-surface:#1c1b19; --color-surface-2:#201f1d; --color-surface-offset:#252320;
+      --color-border:#393836; --color-text:#e4e0d8; --color-text-muted:#a4a097; --color-text-faint:#6d6961;
+      --color-primary:#4f98a3; --color-primary-hover:#69aab3; --color-success:#82c45d; --color-error:#d163a7;
+      --shadow-sm:0 1px 2px rgba(0,0,0,.25); --shadow-md:0 12px 30px rgba(0,0,0,.35);
+    }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    html { scroll-behavior:smooth; }
+    body {
+      min-height:100vh; font-family:var(--font-body); font-size:var(--text-base); color:var(--color-text);
+      background:radial-gradient(circle at top right, rgba(79,152,163,.12), transparent 28%), var(--color-bg);
+      line-height:1.6;
+    }
+    a { color:var(--color-primary); }
+    button { cursor:pointer; font:inherit; }
+    .wrap { max-width:1200px; margin:0 auto; padding:var(--space-6); }
+    .hero {
+      padding:var(--space-12) 0 var(--space-8); display:grid; gap:var(--space-6);
+      grid-template-columns:1.4fr .9fr;
+    }
+    .hero-card, .panel, .script-card, .metric, .topology-card {
+      background:color-mix(in srgb, var(--color-surface) 88%, transparent);
+      border:1px solid color-mix(in srgb, var(--color-border) 85%, transparent);
+      border-radius:var(--radius-xl); box-shadow:var(--shadow-md);
+      backdrop-filter: blur(8px);
+    }
+    .hero-copy h1 {
+      font-family:var(--font-display); font-size:var(--text-2xl); line-height:1.05; max-width:12ch; margin-bottom:var(--space-4);
+    }
+    .hero-copy p { max-width:62ch; color:var(--color-text-muted); }
+    .eyebrow { color:var(--color-primary); text-transform:uppercase; letter-spacing:.12em; font-size:var(--text-xs); margin-bottom:var(--space-3); }
+    .hero-card { padding:var(--space-6); }
+    .hero-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:var(--space-4); margin-top:var(--space-4); }
+    .metric { padding:var(--space-4); }
+    .metric strong { display:block; font-size:var(--text-xl); font-variant-numeric:tabular-nums; }
+    .metric span { color:var(--color-text-muted); font-size:var(--text-sm); }
+    .section { padding:var(--space-8) 0; }
+    .section h2 { font-family:var(--font-display); font-size:var(--text-xl); margin-bottom:var(--space-3); }
+    .section > p { color:var(--color-text-muted); max-width:70ch; margin-bottom:var(--space-6); }
+    .topology-grid, .scripts-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:var(--space-4); }
+    .topology-card, .script-card, .panel { padding:var(--space-5); }
+    .topology-diagram { display:flex; align-items:center; justify-content:center; min-height:120px; margin:var(--space-4) 0; }
+    .topology-card h3, .script-card h3, .panel h3 { font-size:var(--text-lg); margin-bottom:var(--space-2); }
+    .topology-card p, .script-card p, .panel p { color:var(--color-text-muted); font-size:var(--text-sm); }
+    .badge { display:inline-flex; gap:.35rem; align-items:center; padding:.28rem .62rem; border-radius:999px; background:color-mix(in srgb, var(--color-primary) 15%, transparent); color:var(--color-primary); font-size:var(--text-xs); margin-bottom:var(--space-3); }
+    .code-link { display:inline-block; margin-top:var(--space-4); text-decoration:none; font-weight:700; }
+    .viz-grid { display:grid; grid-template-columns:1.1fr .9fr; gap:var(--space-4); }
+    .controls { display:grid; gap:var(--space-3); }
+    .controls label { font-size:var(--text-sm); color:var(--color-text-muted); }
+    select, input[type="range"] {
+      width:100%; margin-top:.35rem; background:var(--color-surface-offset); color:var(--color-text);
+    }
+    select {
+      padding:.75rem .9rem; border-radius:var(--radius-md); border:1px solid var(--color-border);
+    }
+    .legend { display:flex; gap:var(--space-4); flex-wrap:wrap; font-size:var(--text-sm); color:var(--color-text-muted); margin-top:var(--space-3); }
+    .legend span::before { content:''; width:.75rem; height:.75rem; border-radius:50%; display:inline-block; margin-right:.45rem; vertical-align:middle; }
+    .l-s::before { background:#d163a7; }
+    .l-i::before { background:#4f98a3; }
+    .l-r::before { background:#82c45d; }
+    .footer-note { color:var(--color-text-faint); font-size:var(--text-sm); }
+    .topbar { display:flex; justify-content:space-between; align-items:center; gap:var(--space-4); }
+    .theme-toggle { border:1px solid var(--color-border); border-radius:999px; padding:.65rem .9rem; background:var(--color-surface); color:var(--color-text); }
+    svg text { font-family:var(--font-body); fill:var(--color-text-muted); font-size:12px; }
+    @media (max-width: 900px) {
+      .hero, .viz-grid, .topology-grid, .scripts-grid { grid-template-columns:1fr; }
+      .hero-copy h1 { max-width:none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div>
+        <div class="eyebrow">GTRI CIPHER Lab · demo pack</div>
+        <h1 style="font-family:var(--font-display);font-size:var(--text-xl);">PROPAGATOR demo scripts</h1>
+      </div>
+      <button class="theme-toggle" data-theme-toggle aria-label="Toggle theme">Toggle theme</button>
+    </div>
+
+    <section class="hero">
+      <div class="hero-copy">
+        <div class="eyebrow">Topology-aware MAS security</div>
+        <h1>Small, runnable examples that show the point without dragging in the whole lab.</h1>
+        <p>These demos mirror the documentation’s main ideas: represent a MAS as a directed graph, simulate adversarial spread with an SIR-style process, compute risk metrics, and show why topology only starts to matter once resistance heterogeneity becomes non-trivial. In other words: the graph is innocent until the agents become uneven.</p>
+      </div>
+      <div class="hero-card">
+        <div class="badge">Included in this pack</div>
+        <div class="hero-grid">
+          <div class="metric"><strong>4</strong><span>Python demo scripts</span></div>
+          <div class="metric"><strong>3</strong><span>Mini MAS topologies</span></div>
+          <div class="metric"><strong>1</strong><span>Interactive dashboard</span></div>
+          <div class="metric"><strong>0</strong><span>Unnecessary hand-waving</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>What each demo covers</h2>
+      <p>The scripts are intentionally small and self-contained. They don’t pretend to be the full framework; they expose the mechanics cleanly so someone can run them, inspect them, and then swap in the real PROPAGATOR modules with minimal drama.</p>
+      <div class="scripts-grid">
+        <article class="script-card">
+          <div class="badge">demo_01_topology_spread.py</div>
+          <h3>Spread across toy topologies</h3>
+          <p>Compares chain, star, and layered DAG layouts under one attack. Shows infection curves, final infected fraction, and a toy PRS analogue.</p>
+          <a class="code-link" href="./scripts/demo_01_topology_spread.py" target="_blank" rel="noopener noreferrer">Open script</a>
+        </article>
+        <article class="script-card">
+          <div class="badge">demo_02_hst_threshold.py</div>
+          <h3>Why heterogeneity matters</h3>
+          <p>Sweeps node resistance variance and visualizes the topology spread gap. This is the documentation’s HST story, but with fewer ceremonial robes.</p>
+          <a class="code-link" href="./scripts/demo_02_hst_threshold.py" target="_blank" rel="noopener noreferrer">Open script</a>
+        </article>
+        <article class="script-card">
+          <div class="badge">demo_03_guardrail_placement.py</div>
+          <h3>Edge guardrail placement</h3>
+          <p>Places guards on a small rewired graph and compares “guard the obvious hub” versus “guard the dangerous path.” Degree is useful, but not clairvoyant.</p>
+          <a class="code-link" href="./scripts/demo_03_guardrail_placement.py" target="_blank" rel="noopener noreferrer">Open script</a>
+        </article>
+        <article class="script-card">
+          <div class="badge">demo_04_message_interceptor.py</div>
+          <h3>Message-level interception</h3>
+          <p>Mocks an edge interceptor with lightweight SCC/SAC/CAPC-style checks to illustrate the guardrail idea without depending on live MAF plumbing.</p>
+          <a class="code-link" href="./scripts/demo_04_message_interceptor.py" target="_blank" rel="noopener noreferrer">Open script</a>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Mini topology reference</h2>
+      <p>These are the toy topologies used in the demos. They’re small enough to reason about in your head, which is refreshing in a world where people like to call 900 lines “minimal.”</p>
+      <div class="topology-grid">
+        <article class="topology-card">
+          <div class="badge">Chain</div>
+          <h3>Linear authority path</h3>
+          <div class="topology-diagram">
+            <svg width="220" height="90" viewBox="0 0 220 90">
+              <circle cx="30" cy="45" r="14" fill="#d163a7"/><circle cx="95" cy="45" r="14" fill="#4f98a3"/><circle cx="160" cy="45" r="14" fill="#4f98a3"/><circle cx="205" cy="45" r="12" fill="#82c45d"/>
+              <path d="M44 45 H81 M109 45 H146 M174 45 H193" stroke="#6d6961" stroke-width="3"/>
+              <text x="20" y="75">seed</text><text x="84" y="75">A</text><text x="149" y="75">B</text><text x="188" y="75">egress</text>
+            </svg>
+          </div>
+          <p>Useful for showing single-path propagation and why uniform edge coverage can work well when every hop is load-bearing.</p>
+        </article>
+        <article class="topology-card">
+          <div class="badge">Star</div>
+          <h3>Hub amplification</h3>
+          <div class="topology-diagram">
+            <svg width="220" height="120" viewBox="0 0 220 120">
+              <circle cx="110" cy="60" r="18" fill="#4f98a3"/>
+              <circle cx="35" cy="25" r="12" fill="#d163a7"/><circle cx="35" cy="95" r="12" fill="#4f98a3"/><circle cx="185" cy="25" r="12" fill="#4f98a3"/><circle cx="185" cy="95" r="12" fill="#82c45d"/>
+              <path d="M47 25 L93 51 M47 95 L92 69 M173 25 L127 51 M173 95 L128 69" stroke="#6d6961" stroke-width="3"/>
+              <text x="99" y="65">hub</text>
+            </svg>
+          </div>
+          <p>Cleanest illustration of a structural amplifier: once the hub is weak and central, the topology stops being a passive routing choice.</p>
+        </article>
+        <article class="topology-card">
+          <div class="badge">Layered DAG</div>
+          <h3>Natural firewall boundaries</h3>
+          <div class="topology-diagram">
+            <svg width="220" height="110" viewBox="0 0 220 110">
+              <circle cx="25" cy="55" r="12" fill="#d163a7"/><circle cx="90" cy="35" r="12" fill="#4f98a3"/><circle cx="90" cy="75" r="12" fill="#4f98a3"/><circle cx="155" cy="55" r="14" fill="#4f98a3"/><circle cx="205" cy="55" r="12" fill="#82c45d"/>
+              <path d="M37 55 L78 35 M37 55 L78 75 M102 35 L141 55 M102 75 L141 55 M169 55 L193 55" stroke="#6d6961" stroke-width="3"/>
+            </svg>
+          </div>
+          <p>Good for showing boundary guarding and why local handoffs can make placement meaningful instead of ornamental.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Interactive intuition builder</h2>
+      <p>This isn’t a simulator of record. It’s a small visual sanity check: tweak heterogeneity and topology, then watch the qualitative behavior shift the way the documentation says it should.</p>
+      <div class="viz-grid">
+        <div class="panel">
+          <h3>Propagation curves</h3>
+          <canvas id="curveChart" height="250"></canvas>
+          <div class="legend">
+            <span class="l-s">Susceptible</span>
+            <span class="l-i">Infected</span>
+            <span class="l-r">Recovered / blocked</span>
+          </div>
+        </div>
+        <div class="panel controls">
+          <div>
+            <label for="topology">Topology</label>
+            <select id="topology">
+              <option value="chain">Chain</option>
+              <option value="star" selected>Star</option>
+              <option value="dag">Layered DAG</option>
+            </select>
+          </div>
+          <div>
+            <label for="heterogeneity">Resistance heterogeneity: <strong id="heteroVal">0.30</strong></label>
+            <input id="heterogeneity" type="range" min="0.01" max="0.40" step="0.01" value="0.30" />
+          </div>
+          <div>
+            <label for="guarding">Guardrail strength</label>
+            <select id="guarding">
+              <option value="0">G0 / none</option>
+              <option value="0.2">G1 / light</option>
+              <option value="0.5" selected>G2 / moderate</option>
+              <option value="0.75">G4 / aggressive</option>
+            </select>
+          </div>
+          <div class="metric"><strong id="r0Out">0.00</strong><span>Approximate R0</span></div>
+          <div class="metric"><strong id="prsOut">0.00</strong><span>Toy PRS</span></div>
+          <p class="footer-note">The toy model keeps the right intuition: low heterogeneity compresses topology differences, while uneven resistance exposes structural amplifiers.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const root = document.documentElement;
+    document.querySelector('[data-theme-toggle]').addEventListener('click', () => {
+      root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark';
+      chart.options.scales.x.ticks.color = getComputedStyle(root).getPropertyValue('--color-text-muted');
+      chart.options.scales.y.ticks.color = getComputedStyle(root).getPropertyValue('--color-text-muted');
+      chart.options.plugins.legend.labels.color = getComputedStyle(root).getPropertyValue('--color-text');
+      chart.update();
+    });
+
+    const ctx = document.getElementById('curveChart');
+    const chart = new Chart(ctx, {
+      type:'line',
+      data:{ labels:[...Array(12)].map((_,i)=>`t${i}`), datasets:[] },
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        animation:{duration:650},
+        plugins:{ legend:{ labels:{ color:getComputedStyle(root).getPropertyValue('--color-text') } } },
+        scales:{
+          x:{ ticks:{ color:getComputedStyle(root).getPropertyValue('--color-text-muted') }, grid:{ color:'rgba(127,127,127,.15)' } },
+          y:{ min:0,max:1, ticks:{ color:getComputedStyle(root).getPropertyValue('--color-text-muted') }, grid:{ color:'rgba(127,127,127,.15)' } }
+        }
+      }
+    });
+
+    function simulate(topology, hetero, guard) {
+      const topoFactor = {chain:0.72, star:1.02, dag:0.84}[topology];
+      const base = 0.34 * topoFactor;
+      const effective = Math.max(0.05, base * (1 + hetero*1.9) * (1 - guard));
+      const recovery = 0.06 + guard * 0.18;
+      let S = 0.95, I = 0.05, R = 0.0;
+      const s = [], i = [], r = [];
+      for (let t=0; t<12; t++) {
+        s.push(Number(S.toFixed(3))); i.push(Number(I.toFixed(3))); r.push(Number(R.toFixed(3)));
+        const newInf = Math.min(S, effective * I * (0.9 + hetero));
+        const newRec = Math.min(I, recovery * I);
+        S = Math.max(0, S - newInf);
+        I = Math.max(0, I + newInf - newRec);
+        R = Math.min(1, R + newRec);
+      }
+      const r0 = effective / Math.max(0.01, recovery);
+      const peakVel = Math.max(...i.slice(1).map((v, idx) => v - i[idx]));
+      const prs = Math.min(1, i[i.length-1] * 0.9 * Math.max(peakVel, 0.05) * 4.0);
+      return {s,i,r,r0,prs};
+    }
+
+    function update() {
+      const topology = document.getElementById('topology').value;
+      const hetero = parseFloat(document.getElementById('heterogeneity').value);
+      const guard = parseFloat(document.getElementById('guarding').value);
+      document.getElementById('heteroVal').textContent = hetero.toFixed(2);
+      const out = simulate(topology, hetero, guard);
+      document.getElementById('r0Out').textContent = out.r0.toFixed(2);
+      document.getElementById('prsOut').textContent = out.prs.toFixed(3);
+      chart.data.datasets = [
+        {label:'Susceptible', data:out.s, borderColor:'#d163a7', backgroundColor:'transparent', tension:.35, borderWidth:3},
+        {label:'Infected', data:out.i, borderColor:'#4f98a3', backgroundColor:'transparent', tension:.35, borderWidth:3},
+        {label:'Recovered / blocked', data:out.r, borderColor:'#82c45d', backgroundColor:'transparent', tension:.35, borderWidth:3},
+      ];
+      chart.update();
+    }
+
+    ['topology','heterogeneity','guarding'].forEach(id => document.getElementById(id).addEventListener('input', update));
+    update();
+  </script>
+</body>
+</html>
